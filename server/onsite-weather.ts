@@ -35,33 +35,20 @@ export class OnsiteWeather {
   }
 
   async getWeather(): Promise<WeatherData[]> {
-    // Skip if no credentials configured
-    if (!this.apiKey || !this.applicationKey) {
-      return [];
+    const url = `${API_URL}?apiKey=${this.apiKey}&applicationKey=${this.applicationKey}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
     }
 
-    try {
-      const url = `${API_URL}?apiKey=${this.apiKey}&applicationKey=${this.applicationKey}`;
-      const response = await fetch(url);
+    const devices: Device[] = await response.json();
 
-      if (!response.ok) {
-        // Return empty to fall back to external weather
-        console.error(`Ambient Weather API error: ${response.status}`);
-        return [];
-      }
-
-      const devices: Device[] = await response.json();
-
-      return devices
-        .map((d) => d.lastData)
-        .filter(
-          (data): data is WeatherData =>
-            data !== undefined && Object.keys(data).length > 0,
-        );
-    } catch (error) {
-      // Return empty to fall back to external weather
-      console.error("Ambient Weather API failed:", error);
-      return [];
-    }
+    return devices
+      .map((d) => d.lastData)
+      .filter(
+        (data): data is WeatherData =>
+          data !== undefined && Object.keys(data).length > 0,
+      );
   }
 }
