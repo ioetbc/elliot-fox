@@ -1,11 +1,21 @@
+# bun-react-template
+
 To install dependencies:
-```sh
+
+```bash
 bun install
 ```
 
-To run:
-```sh
-bun run dev
+To start a development server:
+
+```bash
+bun dev
 ```
 
-open http://localhost:3000
+To run for production:
+
+```bash
+bun start
+```
+
+This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

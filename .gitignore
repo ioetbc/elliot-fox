@@ -1,2 +1,11 @@
 # deps
 node_modules/
+.env.local
+.env.production
+
+# build output
+dist/
+
+# wrangler
+.wrangler/
+.dev.vars

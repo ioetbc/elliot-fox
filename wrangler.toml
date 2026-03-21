@@ -1,0 +1,11 @@
+name = "fox"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = "./dist"
+
+# For local dev, create a .dev.vars file with:
+# AMBIENT_WEATHER_API_KEY=your_key
+# AMBIENT_WEATHER_APPLICATION_KEY=your_key
+
+# For production, use:
+# bunx wrangler secret put AMBIENT_WEATHER_API_KEY
+# bunx wrangler secret put AMBIENT_WEATHER_APPLICATION_KEY
