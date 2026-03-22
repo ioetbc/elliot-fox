@@ -1,4 +1,4 @@
-import {useRef} from "react";
+import {useRef, useEffect} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {client} from "./api";
 import "./index.css";
@@ -27,8 +27,19 @@ export function App() {
     refetchOnWindowFocus: false,
   });
 
-  const handleVideoEnded = () => {
-    refetch();
+  const handleVideoEnded = async () => {
+    const result = await refetch();
+    const newVideoUrl =
+      result.data && "videoUrl" in result.data ? result.data.videoUrl : null;
+
+    if (videoRef.current && newVideoUrl) {
+      // Reset and play - works whether URL changed or stayed the same
+      videoRef.current.currentTime = 0;
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {
+        // Autoplay may be blocked by browser policy
+      });
+    }
   };
 
   return (
@@ -41,7 +52,6 @@ export function App() {
           className="fullscreen-video"
           src={data.videoUrl}
           autoPlay
-          muted
           playsInline
           onEnded={handleVideoEnded}
         />

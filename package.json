@@ -1,7 +1,7 @@
 {
   "name": "fox",
   "scripts": {
-    "dev": "bun run build && bunx wrangler pages dev dist --live-reload",
+    "dev": "bun run build && bun --watch scripts/build.ts & bunx wrangler pages dev dist --live-reload",
     "build": "bun run scripts/build.ts",
     "deploy": "bun run build && bunx wrangler pages deploy dist"
   },

@@ -1,13 +1,33 @@
 const API_URL = "https://api.ambientweather.net/v1/devices/";
 
 export type WeatherData = {
+  dateutc?: number;
   tempf?: number;
   humidity?: number;
   windspeedmph?: number;
+  windgustmph?: number;
+  maxdailygust?: number;
   winddir?: number;
-  baromrelin?: number;
+  uv?: number;
+  solarradiation?: number;
+  hourlyrainin?: number;
+  eventrainin?: number;
   dailyrainin?: number;
-  dateutc?: number;
+  weeklyrainin?: number;
+  monthlyrainin?: number;
+  yearlyrainin?: number;
+  totalrainin?: number;
+  battout?: number;
+  tempinf?: number;
+  humidityin?: number;
+  baromrelin?: number;
+  baromabsin?: number;
+  feelsLike?: number;
+  dewPoint?: number;
+  feelsLikein?: number;
+  dewPointin?: number;
+  tz?: string;
+  date?: string;
   [key: string]: unknown;
 };
 

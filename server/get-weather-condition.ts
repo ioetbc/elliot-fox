@@ -77,6 +77,73 @@ function weatherCodeToCondition(code: number): WeatherCondition {
   }
 }
 
-export function formatWeather(weatherCode: number): WeatherCondition {
+export function getWeatherCondition(weatherCode: number): WeatherCondition {
   return weatherCodeToCondition(weatherCode);
+}
+
+type OnsiteSensorData = {
+  hourlyrainin?: number;
+  solarradiation?: number;
+  windgustmph?: number;
+  humidity?: number;
+  uv?: number;
+};
+
+/**
+ * Maps onsite weather sensor data to a WeatherCondition.
+ *
+ * Since we don't have WMO codes from the Ambient Weather API,
+ * we infer the condition from sensor readings:
+ * - Rain: hourlyrainin > 0
+ * - Thunder: rain + high wind gusts (>=25 mph)
+ * - Sunny: high solar radiation (>=400 W/m²)
+ * - Heavy Cloud: low solar radiation during daytime
+ * - Light Cloud: medium solar radiation or nighttime default
+ */
+export function getOnsiteWeatherCondition(
+  data: OnsiteSensorData,
+): WeatherCondition {
+  const {
+    hourlyrainin = 0,
+    solarradiation = 0,
+    windgustmph = 0,
+    humidity = 50,
+    uv = 0,
+  } = data;
+
+  // Priority 1: Rain detection
+  if (hourlyrainin > 0) {
+    // Thunderstorm: rain combined with high wind gusts
+    if (windgustmph >= 25) {
+      return WeatherCondition.THUNDER;
+    }
+    return WeatherCondition.RAIN;
+  }
+
+  // Priority 2: Daytime conditions (UV > 0 or measurable solar radiation)
+  const isDaytime = uv > 0 || solarradiation > 10;
+
+  if (isDaytime) {
+    // Sunny: high solar radiation indicates clear skies
+    if (solarradiation >= 300) {
+      return WeatherCondition.SUNNY;
+    }
+
+    // Light cloud: moderate solar radiation (some sun getting through)
+    if (solarradiation >= 50) {
+      return WeatherCondition.LIGHT_CLOUD;
+    }
+
+    // Heavy cloud: very low solar radiation during daytime
+    return WeatherCondition.HEAVY_CLOUD;
+  }
+
+  // Nighttime: use humidity as a proxy for cloudiness
+  // Higher humidity often correlates with overcast conditions
+  if (humidity >= 85) {
+    return WeatherCondition.HEAVY_CLOUD;
+  }
+
+  // Default for nighttime with moderate humidity
+  return WeatherCondition.LIGHT_CLOUD;
 }

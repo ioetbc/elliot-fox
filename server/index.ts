@@ -1,7 +1,11 @@
 import {Hono} from "hono";
 import {OnsiteWeather, type OnsiteEnv} from "./onsite-weather";
 import {ExternalWeather} from "./external-weather";
-import {formatWeather, CONDITION_VIDEO_MAP} from "./format-weather";
+import {
+  getWeatherCondition,
+  CONDITION_VIDEO_MAP,
+  getOnsiteWeatherCondition,
+} from "./get-weather-condition";
 import {getCoordinates, DEFAULT_COUNTRY} from "./country-coordinates";
 
 type Bindings = OnsiteEnv;
@@ -10,27 +14,34 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
   try {
     const countryCode = c.req.query("country") ?? DEFAULT_COUNTRY;
 
-    const countryData =
+    const {coordinates} =
       getCoordinates(countryCode) ?? getCoordinates(DEFAULT_COUNTRY)!;
 
-    const onsite = new OnsiteWeather(c.env);
-    const onsiteData = await onsite.getWeather();
+    // Only attempt onsite weather for GB
+    if (countryCode === "GB") {
+      const onsite = new OnsiteWeather(c.env);
+      const onsiteData = await onsite.getWeather();
 
-    if (!onsiteData.length) {
-      const external = new ExternalWeather();
-      const externalData = await external.getCurrentWeather(
-        countryData.coordinates,
-      );
+      if (onsiteData.length > 0) {
+        const latestData = onsiteData[0];
+        const condition = getOnsiteWeatherCondition(latestData);
+        const videoUrl = CONDITION_VIDEO_MAP[condition];
 
-      const condition = formatWeather(externalData.weatherCode);
-
-      return c.json({
-        condition,
-        videoUrl: CONDITION_VIDEO_MAP[condition],
-      });
+        return c.json({
+          videoUrl,
+        });
+      }
     }
 
-    return c.json(onsiteData);
+    // Fallback to external weather API
+    const external = new ExternalWeather();
+    const externalData = await external.getCurrentWeather(coordinates);
+    const condition = getWeatherCondition(externalData.weatherCode);
+    const videoUrl = CONDITION_VIDEO_MAP[condition];
+
+    return c.json({
+      videoUrl,
+    });
   } catch (error) {
     return c.json(
       {error: error instanceof Error ? error.message : "Unknown error"},
