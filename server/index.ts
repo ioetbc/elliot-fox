@@ -12,13 +12,19 @@ type Bindings = OnsiteEnv;
 
 const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
   try {
+    const lat = c.req.query("lat");
+    const long = c.req.query("long");
     const countryCode = c.req.query("country") ?? DEFAULT_COUNTRY;
 
-    const {coordinates} =
-      getCoordinates(countryCode) ?? getCoordinates(DEFAULT_COUNTRY)!;
+    // Use direct coordinates if both lat and long are provided
+    const coordinates =
+      lat && long
+        ? {latitude: parseFloat(lat), longitude: parseFloat(long)}
+        : (getCoordinates(countryCode) ?? getCoordinates(DEFAULT_COUNTRY)!)
+            .coordinates;
 
     // Only attempt onsite weather for GB
-    if (countryCode === "GB") {
+    if (!lat && !long && countryCode === "GB") {
       const onsite = new OnsiteWeather(c.env);
       const onsiteData = await onsite.getWeather();
 

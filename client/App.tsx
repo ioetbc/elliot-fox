@@ -1,28 +1,41 @@
-import {useRef, useEffect} from "react";
+import {useRef} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {client} from "./api";
 import "./index.css";
 
-function getCountryFromUrl(): string {
+type WeatherParams = {
+  country?: string;
+  lat?: string;
+  long?: string;
+};
+
+function getWeatherParamsFromUrl(): WeatherParams {
   const params = new URLSearchParams(window.location.search);
-  return params.get("country") ?? "GB";
+  const lat = params.get("lat");
+  const long = params.get("long");
+
+  if (lat && long) {
+    return {lat, long};
+  }
+
+  return {country: params.get("country") ?? "GB"};
 }
 
-async function fetchWeather(countryCode: string) {
+async function fetchWeather(params: WeatherParams) {
   const res = await client.api.weather.$get({
-    query: {country: countryCode},
+    query: params,
   });
   if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
   return res.json();
 }
 
 export function App() {
-  const country = getCountryFromUrl();
+  const weatherParams = getWeatherParamsFromUrl();
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const {data, isLoading, refetch} = useQuery({
-    queryKey: ["weather", country],
-    queryFn: () => fetchWeather(country),
+    queryKey: ["weather", weatherParams],
+    queryFn: () => fetchWeather(weatherParams),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
@@ -53,6 +66,7 @@ export function App() {
           src={data.videoUrl}
           autoPlay
           playsInline
+          controls
           onEnded={handleVideoEnded}
         />
       )}
