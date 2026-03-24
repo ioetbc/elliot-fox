@@ -35,6 +35,10 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
 
         return c.json({
           videoUrl,
+          data: {
+            type: "ELLIOT_WEATHER_STATION",
+            ...latestData,
+          },
         });
       }
     }
@@ -47,6 +51,10 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
 
     return c.json({
       videoUrl,
+      data: {
+        type: "WEATHER_API",
+        ...externalData,
+      },
     });
   } catch (error) {
     return c.json(

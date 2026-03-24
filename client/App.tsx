@@ -40,6 +40,8 @@ export function App() {
     refetchOnWindowFocus: false,
   });
 
+  console.log("DATA", data);
+
   const handleVideoEnded = async () => {
     const result = await refetch();
     const newVideoUrl =
