@@ -4,21 +4,12 @@ import {client} from "./api";
 import "./index.css";
 
 type WeatherParams = {
-  country?: string;
-  lat?: string;
-  long?: string;
+  location?: string;
 };
 
 function getWeatherParamsFromUrl(): WeatherParams {
   const params = new URLSearchParams(window.location.search);
-  const lat = params.get("lat");
-  const long = params.get("long");
-
-  if (lat && long) {
-    return {lat, long};
-  }
-
-  return {country: params.get("country") ?? "GB"};
+  return {location: params.get("location") ?? "london"};
 }
 
 async function fetchWeather(params: WeatherParams) {

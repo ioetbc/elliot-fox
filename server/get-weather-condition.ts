@@ -52,29 +52,36 @@ export const CONDITION_VIDEO_MAP: Record<WeatherCondition, string> = {
 // WMO Weather Codes mapping
 // https://open-meteo.com/en/docs#weathervariables
 function weatherCodeToCondition(code: number): WeatherCondition {
-  switch (true) {
-    // 95, 96, 99: Thunderstorm
-    case code >= 95:
-      return WeatherCondition.THUNDER;
-
-    // Drizzle, rain, rain showers, snow
-    case (code >= 51 && code <= 67) ||
-      (code >= 80 && code <= 82) ||
-      (code >= 71 && code <= 77):
-      return WeatherCondition.RAIN;
-
-    // Clear sky, mainly clear
-    case code === 0 || code === 1:
-      return WeatherCondition.SUNNY;
-
-    // Overcast, fog
-    case code === 3 || code >= 45:
-      return WeatherCondition.HEAVY_CLOUD;
-
-    // Partly cloudy (code === 2) or unknown
-    default:
-      return WeatherCondition.LIGHT_CLOUD;
+  // Thunderstorm: 95, 96, 99
+  if (code === 95 || code === 96 || code === 99) {
+    return WeatherCondition.THUNDER;
   }
+
+  // Precipitation: drizzle (51-57), rain (61-67), snowfall (71-77),
+  // rain showers (80-82), snow showers (85, 86)
+  if (
+    (code >= 51 && code <= 57) ||
+    (code >= 61 && code <= 67) ||
+    (code >= 71 && code <= 77) ||
+    (code >= 80 && code <= 82) ||
+    code === 85 ||
+    code === 86
+  ) {
+    return WeatherCondition.RAIN;
+  }
+
+  // Clear sky, mainly clear
+  if (code === 0 || code === 1) {
+    return WeatherCondition.SUNNY;
+  }
+
+  // Overcast, fog, depositing rime fog
+  if (code === 3 || code === 45 || code === 48) {
+    return WeatherCondition.HEAVY_CLOUD;
+  }
+
+  // Partly cloudy (2) or unknown
+  return WeatherCondition.LIGHT_CLOUD;
 }
 
 export function getWeatherCondition(weatherCode: number): WeatherCondition {

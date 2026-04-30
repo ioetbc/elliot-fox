@@ -6,30 +6,23 @@ import {
   CONDITION_VIDEO_MAP,
   getOnsiteWeatherCondition,
 } from "./get-weather-condition";
-import {getCoordinates, DEFAULT_COUNTRY} from "./country-coordinates";
+import {getCoordinates, ONSITE_LOCATION} from "./location-coordinates";
 
 type Bindings = OnsiteEnv;
 
 const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
   try {
-    const lat = c.req.query("lat");
-    const long = c.req.query("long");
-    const countryCode = c.req.query("country") ?? DEFAULT_COUNTRY;
+    const location = c.req.query("location");
 
-    // Use direct coordinates if both lat and long are provided
-    const coordinates =
-      lat && long
-        ? {latitude: parseFloat(lat), longitude: parseFloat(long)}
-        : (getCoordinates(countryCode) ?? getCoordinates(DEFAULT_COUNTRY)!)
-            .coordinates;
-
-    // Only attempt onsite weather for GB
-    if (!lat && !long && countryCode === "GB") {
+    if (location === ONSITE_LOCATION) {
       const onsite = new OnsiteWeather(c.env);
       const onsiteData = await onsite.getWeather();
 
       if (onsiteData.length > 0) {
         const latestData = onsiteData[0];
+
+        console.log('latestData', latestData)
+
         const condition = getOnsiteWeatherCondition(latestData);
         const videoUrl = CONDITION_VIDEO_MAP[condition];
 
@@ -43,10 +36,13 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
       }
     }
 
-    // Fallback to external weather API
+    const {coordinates} = getCoordinates(location);
     const external = new ExternalWeather();
     const externalData = await external.getCurrentWeather(coordinates);
     const condition = getWeatherCondition(externalData.weatherCode);
+
+    console.log('condition', condition)
+
     const videoUrl = CONDITION_VIDEO_MAP[condition];
 
     return c.json({
