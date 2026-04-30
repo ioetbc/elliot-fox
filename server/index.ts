@@ -21,8 +21,6 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
       if (onsiteData.length > 0) {
         const latestData = onsiteData[0];
 
-        console.log('latestData', latestData)
-
         const condition = getOnsiteWeatherCondition(latestData);
         const videoUrl = CONDITION_VIDEO_MAP[condition];
 
@@ -50,6 +48,7 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
       data: {
         type: "WEATHER_API",
         ...externalData,
+        condition
       },
     });
   } catch (error) {
