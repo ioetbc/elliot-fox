@@ -40,6 +40,14 @@ export const LOCATION_COORDINATES: Record<string, LocationData> = {
     label: "Redruth",
     coordinates: {latitude: 50.2329, longitude: -5.2236},
   },
+  "cape-horn": {
+    label: "Cape Horn",
+    coordinates: {latitude: -55.9833, longitude: -67.2667},
+  },
+  reykjavik: {
+    label: "Reykjavik",
+    coordinates: {latitude: 64.1355, longitude: -21.8954},
+  },
 };
 
 export const DEFAULT_LOCATION = "london";

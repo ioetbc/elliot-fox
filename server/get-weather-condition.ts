@@ -34,6 +34,7 @@
 export enum WeatherCondition {
   THUNDER = "THUNDER",
   RAIN = "RAIN",
+  WINDY = "WINDY",
   SUNNY = "SUNNY",
   HEAVY_CLOUD = "HEAVY_CLOUD",
   LIGHT_CLOUD = "LIGHT_CLOUD",
@@ -44,6 +45,7 @@ const VIDEO_BASE_URL = "https://pub-48d10041c3bf40138ccbe69952ac5fd3.r2.dev";
 export const CONDITION_VIDEO_MAP: Record<WeatherCondition, string> = {
   [WeatherCondition.THUNDER]: `${VIDEO_BASE_URL}/THUNDER_COMPRESSED.mp4`,
   [WeatherCondition.RAIN]: `${VIDEO_BASE_URL}/RAIN_COMPRESSED.mp4`,
+  [WeatherCondition.WINDY]: `${VIDEO_BASE_URL}/WINDY_COMPRESSED.mp4`,
   [WeatherCondition.SUNNY]: `${VIDEO_BASE_URL}/SUNNY_COMPRESSED.mp4`,
   [WeatherCondition.HEAVY_CLOUD]: `${VIDEO_BASE_URL}/HEAVY_CLOUD_COMPRESSED.mp4`,
   [WeatherCondition.LIGHT_CLOUD]: `${VIDEO_BASE_URL}/LIGH_CLOUD_COMPRESSED.mp4`,
@@ -84,8 +86,21 @@ function weatherCodeToCondition(code: number): WeatherCondition {
   return WeatherCondition.LIGHT_CLOUD;
 }
 
-export function getWeatherCondition(weatherCode: number): WeatherCondition {
-  return weatherCodeToCondition(weatherCode);
+const WINDY_THRESHOLD_KMH = 30;
+
+const PRECIPITATION_CONDITIONS = new Set([
+  WeatherCondition.THUNDER,
+  WeatherCondition.RAIN,
+]);
+
+export function getWeatherCondition(weatherCode: number, windSpeed?: number): WeatherCondition {
+  const condition = weatherCodeToCondition(weatherCode);
+
+  if (windSpeed !== undefined && windSpeed >= WINDY_THRESHOLD_KMH && !PRECIPITATION_CONDITIONS.has(condition)) {
+    return WeatherCondition.WINDY;
+  }
+
+  return condition;
 }
 
 type OnsiteSensorData = {

@@ -37,7 +37,7 @@ const api = new Hono<{Bindings: Bindings}>().get("/weather", async (c) => {
     const {coordinates} = getCoordinates(location);
     const external = new ExternalWeather();
     const externalData = await external.getCurrentWeather(coordinates);
-    const condition = getWeatherCondition(externalData.weatherCode);
+    const condition = getWeatherCondition(externalData.weatherCode, externalData.windSpeed);
 
     console.log('condition', condition)
 
