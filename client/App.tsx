@@ -25,6 +25,7 @@ export function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(false);
 
   const {data, isLoading, refetch} = useQuery({
     queryKey: ["weather", weatherParams],
@@ -58,6 +59,11 @@ export function App() {
     }
   }, [isPaused, play, pause]);
 
+  const handleContainerClick = useCallback(() => {
+    if (!hasStarted) return;
+    setControlsVisible(v => !v);
+  }, [hasStarted]);
+
   const toggleFullscreen = useCallback(async () => {
     if (!document.fullscreenElement) {
       await containerRef.current?.requestFullscreen();
@@ -77,7 +83,7 @@ export function App() {
   }
 
   return (
-    <div ref={containerRef} className="video-container">
+    <div ref={containerRef} className="video-container" onClick={handleContainerClick}>
       <video
         ref={videoARef}
         className="fullscreen-video"
@@ -101,8 +107,8 @@ export function App() {
           ▶
         </button>
       )}
-      {hasStarted && (
-        <div className="video-controls">
+      {hasStarted && controlsVisible && (
+        <div className="video-controls" onClick={e => e.stopPropagation()}>
           <button className="control-btn" onClick={togglePlayPause}>
             {isPaused ? "▶" : "⏸"}
           </button>
