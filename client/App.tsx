@@ -1,4 +1,5 @@
 import {useQuery} from "@tanstack/react-query";
+import {useRef, useState, useCallback} from "react";
 import {client} from "./api";
 import {useVideoDoubleBuffer} from "./hooks/useVideoDoubleBuffer";
 import "./index.css";
@@ -20,6 +21,10 @@ async function fetchWeather(params: WeatherParams) {
 
 export function App() {
   const weatherParams = getWeatherParamsFromUrl();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const {data, isLoading, refetch} = useQuery({
     queryKey: ["weather", weatherParams],
@@ -35,8 +40,33 @@ export function App() {
 
   const initialVideoUrl = data && "videoUrl" in data ? data.videoUrl : undefined;
 
-  const {videoARef, videoBRef, handleTimeUpdate, handleVideoEnded} =
+  const {videoARef, videoBRef, handleTimeUpdate, handleVideoEnded, play, pause} =
     useVideoDoubleBuffer(initialVideoUrl, getNextVideoUrl);
+
+  const handleStart = useCallback(() => {
+    play();
+    setHasStarted(true);
+  }, [play]);
+
+  const togglePlayPause = useCallback(() => {
+    if (isPaused) {
+      play();
+      setIsPaused(false);
+    } else {
+      pause();
+      setIsPaused(true);
+    }
+  }, [isPaused, play, pause]);
+
+  const toggleFullscreen = useCallback(async () => {
+    if (!document.fullscreenElement) {
+      await containerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
 
   if (isLoading || !data || !("videoUrl" in data)) {
     return (
@@ -47,14 +77,13 @@ export function App() {
   }
 
   return (
-    <div className="video-container">
+    <div ref={containerRef} className="video-container">
       <video
         ref={videoARef}
         className="fullscreen-video"
         style={{opacity: 0, zIndex: 0}}
         playsInline
         preload="auto"
-        controls
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleVideoEnded}
       />
@@ -64,10 +93,24 @@ export function App() {
         style={{opacity: 0, zIndex: 0}}
         playsInline
         preload="auto"
-        controls
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleVideoEnded}
       />
+      {!hasStarted && (
+        <button className="play-overlay" onClick={handleStart}>
+          ▶
+        </button>
+      )}
+      {hasStarted && (
+        <div className="video-controls">
+          <button className="control-btn" onClick={togglePlayPause}>
+            {isPaused ? "▶" : "⏸"}
+          </button>
+          <button className="control-btn" onClick={toggleFullscreen}>
+            {isFullscreen ? "⤡" : "⤢"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

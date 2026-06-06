@@ -86,14 +86,16 @@ export function useVideoDoubleBuffer(
     inactive.addEventListener("canplay", swap, {once: true});
   };
 
+  const play = () => getActive()?.play().catch(() => {});
+  const pause = () => getActive()?.pause();
+
   useEffect(() => {
     const videoA = videoARef.current;
     if (!initialVideoUrl || !videoA || videoA.src) return;
     videoA.src = initialVideoUrl;
     videoA.load();
-    videoA.play().catch(() => {});
     show(videoA);
   }, [initialVideoUrl]);
 
-  return {videoARef, videoBRef, handleTimeUpdate, handleVideoEnded};
+  return {videoARef, videoBRef, handleTimeUpdate, handleVideoEnded, play, pause};
 }
